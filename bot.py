@@ -61,7 +61,12 @@ class BossBot(Cog):
         message = await ctx.send("Loading...")
         ping = int((time.monotonic() - before) * 1000)
         await message.edit(content=f"Pong! WS: {before_ws}ms  |  REST: {ping}ms")
-
+    
+    @commands.Cog.listener()
+    async def on_member_join(self, member):
+        channel = member.guild.system_channel
+        if channel is not None:
+            await channel.send(f"Hello! Welcome {member.mention} to the server!")
 
 bot.add_cog(BossBot(bot))
 bot.run(config.token)
