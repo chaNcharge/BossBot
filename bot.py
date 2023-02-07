@@ -11,7 +11,6 @@ from discord.ext.commands import errors, Cog
 from collections import namedtuple
 
 
-
 def readConfig(file):
     try:
         with open(file, encoding='utf8') as data:
@@ -23,17 +22,19 @@ def readConfig(file):
 
 
 # Initialization
-config = readConfig("config.json") # Config
+config = readConfig("config.json")  # Config
 bot = commands.Bot(
     command_prefix=config.prefix, prefix=config.prefix, command_attrs=dict(
         hidden=True),
     intents=discord.Intents.all()
-) # Bot object
-con = sqlite3.connect("schedule.db") # We can set isolation_level to None for auto commit, but worse performance
-cur = con.cursor() # Use cur.execute("sql string") to execute sql on storage.db, then con.commit() when done
+)  # Bot object
+# We can set isolation_level to None for auto commit, but worse performance
+con = sqlite3.connect("schedule.db")
+# Use cur.execute("sql string") to execute sql on storage.db, then con.commit() when done
+cur = con.cursor()
 
-# Table creation 
-# (Note that when we create new columns mid development, 
+# Table creation
+# (Note that when we create new columns mid development,
 # a new table will have to be created or an existing table manually edited)
 table_name = "schedule"
 cur.execute(f"""CREATE TABLE IF NOT EXISTS {table_name} (
@@ -87,7 +88,6 @@ class BossBot(Cog):
     async def echo(self, ctx, toecho):
         """ Repeats what is entered in echo command argument """
         await ctx.send(toecho)
-    
 
     @commands.Cog.listener()
     # hello bot function
@@ -101,7 +101,8 @@ class BossBot(Cog):
         """ Register new user information. Starts multiple prompts. """
         # Full name prompt
         start_msg = await ctx.send(f"Hello there **{ctx.author.name}**, please enter your real first and last name.")
-        def check_name(m): # No requirements for name, whatever the user inputs, that's their name
+
+        def check_name(m):  # No requirements for name, whatever the user inputs, that's their name
             return True
         try:
             userResponse = await self.bot.wait_for('message', timeout=30.0, check=check_name)
@@ -110,11 +111,12 @@ class BossBot(Cog):
                 content=f"~~{start_msg.clean_content}~~\n\nTimed out, please run register again."
             )
         name = userResponse.content
-        
+
         # Birthday prompt
         # Using RegEx to check if user input matches what is expected
         re_timestamp = r"^(0[1-9]|1[0-2])\/(0[0-9]|1[0-9]|2[0-9]|3[0-1])\/([1-2]{1}[0-9]{3})"
         birthday_msg = await ctx.send(f"Hello, **{name}**, now enter your date of birth in the following format `MM/DD/YYYY`")
+
         def check_timestamp(m):
             if (m.author == ctx.author and m.channel == ctx.channel):
                 if re.compile(re_timestamp).search(m.content):
@@ -127,13 +129,15 @@ class BossBot(Cog):
             return await birthday_msg.edit(
                 content=f"~~{start_msg.clean_content}~~\n\nTimed out or invalid inputs, please run register again."
             )
-        date = datetime.datetime.strptime(userResponse.content.split(" ")[0], "%m/%d/%Y")
-        
+        date = datetime.datetime.strptime(
+            userResponse.content.split(" ")[0], "%m/%d/%Y")
+
         cur.execute(f"""INSERT INTO {table_name} (user_id, name, birthday, has_role) 
         VALUES ({ctx.author.id}, "{name}", "{date.strftime("%Y-%m-%d")} 00:00:00", False)""")
         con.commit()
 
         await ctx.send(f"Registered as {name} with birthday {date.strftime('%B %d, %Y')}.")
+
 
 asyncio.run(bot.add_cog(BossBot(bot)))
 bot.run(config.token)
