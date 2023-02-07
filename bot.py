@@ -1,10 +1,12 @@
 import discord
 import time
 import json
+import sqlite3
 
 from discord.ext import commands
 from discord.ext.commands import errors, Cog
 from collections import namedtuple
+
 
 
 def readConfig(file):
@@ -29,6 +31,18 @@ bot = commands.Bot(
 class BossBot(Cog):
     def __init__(self, bot):
         self.bot = bot
+
+        self.conn = sqlite3.connect("schedule.db")
+        self.cursor = self.conn.cursor()
+
+        self.cursor.excute("""
+            CREATE TABLE IF NOT EXIST schedule( 
+            user_id TEXT,
+            work_week TEXT,
+            holiday TEXT
+            )
+        """)
+
 
         print("Logging in...")
 
@@ -62,7 +76,9 @@ class BossBot(Cog):
         ping = int((time.monotonic() - before) * 1000)
         await message.edit(content=f"Pong! WS: {before_ws}ms  |  REST: {ping}ms")
     
+
     @commands.Cog.listener()
+    # hello bot function
     async def on_member_join(self, member):
         channel = member.guild.system_channel
         if channel is not None:
