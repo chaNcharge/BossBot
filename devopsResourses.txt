@@ -20,5 +20,11 @@ Oceania: https://www.qppstudio.net/public-holidays/oceania.htm
 World: https://www.qppstudio.net/public-holidays/world.htm
 
 
+Pip:
+https://www.geeksforgeeks.org/install-packages-using-pip-with-requirements-txt-file-in-python/
+
 SQL:
 https://howpcrules.com/step-by-step-guide-on-scraping-data-from-a-website-and-saving-it-to-a-database/
+https://www.geeksforgeeks.org/mysqldb-connection-python/
+https://www.sqlitetutorial.net/
+https://www.geeksforgeeks.org/sql-tutorial/

@@ -5,6 +5,10 @@ import sqlite3
 import asyncio
 import re
 import datetime
+import requests
+import bs4
+import pymongo
+
 
 from discord.ext import commands
 from discord.ext.commands import errors, Cog
@@ -46,6 +50,56 @@ work_week TEXT,
 holiday TEXT,
 last_punch TIMESTAMP
 );""")
+
+
+
+# Webscrape for holidays
+def get_holidays():
+    # Connect to MongoDB
+    client = pymongo.MongoClient("mongodb://localhost:27017/")
+    db = client["website_db"]
+    collection = db["website_data"]
+    
+    # List of websites to scrape
+    websites = [
+        "https://www.qppstudio.net/public-holidays/north-america.htm",
+        "https://www.qppstudio.net/public-holidays/central-america.htm",
+        "https://www.qppstudio.net/public-holidays/south-america.htm",
+        "https://www.qppstudio.net/public-holidays/europe.htm",
+        "https://publicholidays.ru/2023-dates/",
+        "https://www.qppstudio.net/public-holidays/asia.htm",
+        "https://www.qppstudio.net/public-holidays/middle-east.htm",
+        "https://www.qppstudio.net/public-holidays/africa.htm",
+        "https://www.qppstudio.net/public-holidays/oceania.htm",
+        "https://www.qppstudio.net/public-holidays/world.htm"
+        ]
+    
+    # List of Regions by the 
+    Region = [
+        "North America",
+        "Central America",
+        "South america",
+        "Europe",
+        "Russia",
+        "Asia",
+        "Middle East",
+        "Africa",
+        "Oceania",
+        "World"
+    ]
+    
+     # Replace with the website that contains the holiday information
+    url = "https://www.example.com/holidays"
+    for websites in websites:
+
+    res = requests.get(url)
+    soup = BeautifulSoup(res.text, 'html.parser')
+    holidays = []
+    # Extract the holiday dates from the website and add them to the list
+    for holiday_element in soup.find_all('div', {'class': 'holiday'}):
+        holiday_date = holiday_element.find('span', {'class': 'date'}).text
+        holidays.append(holiday_date)
+    return holidays
 
 
 class BossBot(Cog):
