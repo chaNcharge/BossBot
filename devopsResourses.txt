@@ -1,0 +1,24 @@
+Holiday information:
+https://www.timeanddate.com/holidays/
+https://www.timeanddate.com/holidays/us/2023?hol=9
+https://www.canada.ca/en/revenue-agency/services/tax/public-holidays.html
+https://publicholidays.ru/2023-dates/
+https://www.qppstudio.net/publicholidays2023/eu.htm
+
+
+REGIONS
+
+North america: https://www.qppstudio.net/public-holidays/north-america.htm
+Central america: https://www.qppstudio.net/public-holidays/central-america.htm
+South america: https://www.qppstudio.net/public-holidays/south-america.htm
+Europe: https://www.qppstudio.net/public-holidays/europe.htm
+Russia: https://publicholidays.ru/2023-dates/
+Asia: https://www.qppstudio.net/public-holidays/asia.htm
+Middle East: https://www.qppstudio.net/public-holidays/middle-east.htm
+Africa: https://www.qppstudio.net/public-holidays/africa.htm
+Oceania: https://www.qppstudio.net/public-holidays/oceania.htm
+World: https://www.qppstudio.net/public-holidays/world.htm
+
+
+SQL:
+https://howpcrules.com/step-by-step-guide-on-scraping-data-from-a-website-and-saving-it-to-a-database/
