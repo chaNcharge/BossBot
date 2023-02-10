@@ -60,35 +60,21 @@ def get_holidays():
     db = client["website_db"]
     collection = db["website_data"]
     
-    # List of websites to scrape
-    websites = [
-        "https://www.qppstudio.net/public-holidays/north-america.htm",
-        "https://www.qppstudio.net/public-holidays/central-america.htm",
-        "https://www.qppstudio.net/public-holidays/south-america.htm",
-        "https://www.qppstudio.net/public-holidays/europe.htm",
-        "https://publicholidays.ru/2023-dates/",
-        "https://www.qppstudio.net/public-holidays/asia.htm",
-        "https://www.qppstudio.net/public-holidays/middle-east.htm",
-        "https://www.qppstudio.net/public-holidays/africa.htm",
-        "https://www.qppstudio.net/public-holidays/oceania.htm",
-        "https://www.qppstudio.net/public-holidays/world.htm"
+    # List of websites to scrape and repective region
+    regions = [
+        ('North America' ,'https://www.qppstudio.net/public-holidays/north-america.htm'),
+        ('Central America', 'https://www.qppstudio.net/public-holidays/central-america.htm'),
+        ('South America', 'https://www.qppstudio.net/public-holidays/south-america.htm'),
+        ('Europe', 'https://www.qppstudio.net/public-holidays/europe.htm'),
+        ('Russia', 'https://publicholidays.ru/2023-dates/'),
+        ('Asia', 'https://www.qppstudio.net/public-holidays/asia.htm'),
+        ('Middle East', 'https://www.qppstudio.net/public-holidays/middle-east.htm'),
+        ('Africa', 'https://www.qppstudio.net/public-holidays/africa.htm'),
+        ('Oceania' , 'https://www.qppstudio.net/public-holidays/oceania.htm'),
+        ('World','https://www.qppstudio.net/public-holidays/world.htm')
         ]
     
-    # List of Regions by the 
-    Region = [
-        "North America",
-        "Central America",
-        "South america",
-        "Europe",
-        "Russia",
-        "Asia",
-        "Middle East",
-        "Africa",
-        "Oceania",
-        "World"
-    ]
-    
-     # Replace with the website that contains the holiday information
+    # Replace with the website that contains the holiday information
     url = "https://www.example.com/holidays"
     for websites in websites:
 
