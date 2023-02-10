@@ -5,10 +5,9 @@ import sqlite3
 import asyncio
 import re
 import datetime
-import requests
-import bs4
-import pymongo
-
+import requests 
+import mechanicalsoup
+import pandas
 
 from discord.ext import commands
 from discord.ext.commands import errors, Cog
@@ -47,7 +46,8 @@ name TEXT NOT NULL,
 birthday TIMESTAMP NOT NULL,
 has_role BOOLEAN NOT NULL,
 work_week TEXT,
-holiday TEXT,
+region TEXT NOT NULL,
+holiday TEXT NOT NULL,
 last_punch TIMESTAMP
 );""")
 
@@ -55,39 +55,32 @@ last_punch TIMESTAMP
 
 # Webscrape for holidays
 def get_holidays():
-    # Connect to MongoDB
-    client = pymongo.MongoClient("mongodb://localhost:27017/")
-    db = client["website_db"]
-    collection = db["website_data"]
-    
-    # List of websites to scrape and repective region
     regions = [
         ('North America' ,'https://www.qppstudio.net/public-holidays/north-america.htm'),
         ('Central America', 'https://www.qppstudio.net/public-holidays/central-america.htm'),
         ('South America', 'https://www.qppstudio.net/public-holidays/south-america.htm'),
         ('Europe', 'https://www.qppstudio.net/public-holidays/europe.htm'),
-        ('Russia', 'https://publicholidays.ru/2023-dates/'),
         ('Asia', 'https://www.qppstudio.net/public-holidays/asia.htm'),
         ('Middle East', 'https://www.qppstudio.net/public-holidays/middle-east.htm'),
         ('Africa', 'https://www.qppstudio.net/public-holidays/africa.htm'),
         ('Oceania' , 'https://www.qppstudio.net/public-holidays/oceania.htm'),
         ('World','https://www.qppstudio.net/public-holidays/world.htm')
         ]
-    
-    # Replace with the website that contains the holiday information
-    url = "https://www.example.com/holidays"
-    for websites in websites:
-
-    res = requests.get(url)
-    soup = BeautifulSoup(res.text, 'html.parser')
-    holidays = []
-    # Extract the holiday dates from the website and add them to the list
-    for holiday_element in soup.find_all('div', {'class': 'holiday'}):
-        holiday_date = holiday_element.find('span', {'class': 'date'}).text
-        holidays.append(holiday_date)
-    return holidays
-
-
+    for region, website in region:
+        # make request to website and retrive the content
+        browser = mechanicalsoup.StatefulBrowser()
+        browser.open(website)
+        # extract table header
+        date_time = browser.page.find_all("time")
+        dates = [value.text for value in time]
+        #create a named tuple to store the region and assocated holidays
+        Holiday = namedtuple("Holiday",["region", "holiday"])
+        holiday = Holiday(region= region, holiday=dates)
+        #maybe need to make it into a dataframe using pandas where region is coloum 1 and the holiday dates are in coloum 2
+        #insert data in to database
+        cur.execute("INSERT INTO schedule (region,holiday) VALUES(?,?)", (holiday.region,holiday.holiday))
+        con.commit()
+        
 class BossBot(Cog):
     def __init__(self, bot):
         self.bot = bot
