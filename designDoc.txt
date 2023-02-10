@@ -1,0 +1,7 @@
+The fallowing code is a discord bot where:
+1) There is a data base that Has each region and the holidays associated with them.
+2) Discord User enters the command `!schedule` and they are prompted with each day of the week to enter start and stop times (enter none if they don't wish to work) and it is stored in a data base
+3) Users enter the `!register` command to be prompted to enter their name, birthday and region which are stored in a data base
+4) Users can enter the `!today` command and the bot will let them know if they work today based off the work week schedule they submitted and holiday in their region.  and will lead with a quote of the day.
+5) Users can enter (! a day of  the week to see their schedule)
+6) if a user is offline during the hours of work the bot will message the user "get back to work".
