@@ -5,14 +5,12 @@ import sqlite3
 import asyncio
 import re
 import datetime
-import requests 
-import mechanicalsoup
-import pandas
 
+form dayQuote import get_quote_of_the_day
+from regionHoliday import get_RegionHDays
 from discord.ext import commands
 from discord.ext.commands import errors, Cog
 from collections import namedtuple
-
 
 def readConfig(file):
     try:
@@ -22,7 +20,6 @@ def readConfig(file):
         raise AttributeError("Unknown argument") from exc
     except FileNotFoundError as exc:
         raise FileNotFoundError("JSON file wasn't found") from exc
-
 
 # Initialization
 config = readConfig("config.json")  # Config
@@ -45,42 +42,29 @@ user_id INTEGER NOT NULL,
 name TEXT NOT NULL,
 birthday TIMESTAMP NOT NULL,
 has_role BOOLEAN NOT NULL,
-work_week TEXT,
 region TEXT NOT NULL,
 holiday TEXT NOT NULL,
+quote TEXT NOT NULL,
 last_punch TIMESTAMP
+Monday_start TIME NOT NULL,
+Monday_end TIME NOT NULL,
+Tuesday_start TIME NOT NULL,
+Tuesday_end TIME NOT NULL,
+Wednesday_start TIME NOT NULL,
+Wednesday_end TIME NOT NULL,
+Thursday_start TIME NOT NULL,
+Thursday_end TIME NOT NULL,
+Friday_start TIME NOT NULL,
+Friday_end TIME NOT NULL,
+Saturday_start TIME NOT NULL,
+Saturday_end TIME NOT NULL,
+Sunday_start TIME NOT NULL,
+Sunday_end TIME NOT NULL
 );""")
 
-
-
-# Webscrape for holidays
-def get_holidays():
-    regions = [
-        ('North America' ,'https://www.qppstudio.net/public-holidays/north-america.htm'),
-        ('Central America', 'https://www.qppstudio.net/public-holidays/central-america.htm'),
-        ('South America', 'https://www.qppstudio.net/public-holidays/south-america.htm'),
-        ('Europe', 'https://www.qppstudio.net/public-holidays/europe.htm'),
-        ('Asia', 'https://www.qppstudio.net/public-holidays/asia.htm'),
-        ('Middle East', 'https://www.qppstudio.net/public-holidays/middle-east.htm'),
-        ('Africa', 'https://www.qppstudio.net/public-holidays/africa.htm'),
-        ('Oceania' , 'https://www.qppstudio.net/public-holidays/oceania.htm'),
-        ('World','https://www.qppstudio.net/public-holidays/world.htm')
-        ]
-    for region, website in region:
-        # make request to website and retrive the content
-        browser = mechanicalsoup.StatefulBrowser()
-        browser.open(website)
-        # extract table header
-        date_time = browser.page.find_all("time")
-        dates = [value.text for value in time]
-        #create a named tuple to store the region and assocated holidays
-        Holiday = namedtuple("Holiday",["region", "holiday"])
-        holiday = Holiday(region= region, holiday=dates)
-        #maybe need to make it into a dataframe using pandas where region is coloum 1 and the holiday dates are in coloum 2
-        #insert data in to database
-        cur.execute("INSERT INTO schedule (region,holiday) VALUES(?,?)", (holiday.region,holiday.holiday))
-        con.commit()
-        
+# call the function to update database
+get_RegionHDays(cur , con)
+ 
 class BossBot(Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -164,12 +148,107 @@ class BossBot(Cog):
             )
         date = datetime.datetime.strptime(
             userResponse.content.split(" ")[0], "%m/%d/%Y")
+        
+        # Region prompt
+        region_msg = await ctx.send(f"Hello, **{name}**, now enter your region.")
 
-        cur.execute(f"""INSERT INTO {table_name} (user_id, name, birthday, has_role) 
-        VALUES ({ctx.author.id}, "{name}", "{date.strftime("%Y-%m-%d")} 00:00:00", False)""")
+        def check_region(m):
+            if (m.author == ctx.author and m.channel == ctx.channel):
+                return True
+            return False
+
+        try:
+            userResponse = await self.bot.wait_for('message', timeout=30.0, check=check_region)
+        except asyncio.TimeoutError:
+            return await region_msg.edit(
+                content=f"~~{region_msg.clean_content}~~\n\nTimed out, please run `!register` again."(
+            )
+        region = userResponse.content
+
+        cur.execute(f"""INSERT INTO {table_name} (user_id, name, birthday, region, has_role) 
+        VALUES ({ctx.author.id}, "{name}", "{date.strftime("%Y-%m-%d")} 00:00:00", "{region}", False)""")
         con.commit()
 
-        await ctx.send(f"Registered as {name} with birthday {date.strftime('%B %d, %Y')}.")
+        await ctx.send(f"Registered as {name} form {region} with birthday {date.strftime('%B %d, %Y')}."
+        
+    @commands.command()
+    async def today(self, ctx):
+        """Shows data for data base on todays date based off in put form user"""
+        quote = dayQuote.get_quote_of_the_day()
+        cur.execute("SELECT region, holiday FROM schedule WHERE username = ?", (username,))
+        data = cur.fetchone()
+        region = data[0]
+        holidays = data[1]
+        today = datetime.data.today().strftime("%B %d")
+        
+        if today in holidays:
+            await ctx.send("Today is a holiday in your region. Enjoy the day off!")
+        else:
+            await ctx.send("Get back to work! Toady is not a holiday in your region.")
+        
+        con.close()
+
+   @commands.command()
+    async def schedule(self, ctx):
+    """Prompts the user to enter their work week schedule."""
+        days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    
+        for day in days:
+            await ctx.send(f"Enter start and end time for {day} (or enter 'none' if you don't wish to work):")
+            response = await self.bot.wait_for('message', check=lambda message: message.author == ctx.author)
+            if response.content.lower() == 'none':
+                continue
+            else:
+                start, end = response.content.split()
+                c.execute("INSERT INTO workweek (day, start_time, end_time) VALUES (?,?,?)", (day, start, end))
+                conn.commit()
+    # don't forget to close the connection when finished
+    conn.close()
+
+    @commands.command()
+    async def check_work(self, ctx):
+    """Checks if a user is offline during their work hours."""
+        # get the current time
+        now = datetime.datetime.now()
+        current_hour = now.hour
+
+        # get the user's work hours from the database
+        c.execute("SELECT day, start_time, end_time FROM workweek WHERE user_id=?", (ctx.author.id,))
+        work_hours = c.fetchone()
+        if work_hours is None:
+            await ctx.send("You haven't set your work week schedule yet. Please use the `!schedule` command to set it.")
+            return
+
+        day = datetime.datetime.today().strftime('%A')
+        if day == work_hours[0] and (current_hour >= int(work_hours[1]) and current_hour <= int(work_hours[2])):
+            if ctx.author.status == discord.Status.offline:
+                await ctx.send(f"{ctx.author.mention} get back to work!")
+    
+    @commands.command()
+    async def schedule(self, ctx, *, day=None):
+    """Prompts the user to enter their work week schedule or retrieves their schedule for a specific day."""
+        if day:
+            c.execute("SELECT start_time, end_time FROM workweek WHERE day=?", (day,))
+            schedule = c.fetchone()
+            if schedule:
+                start, end = schedule
+                await ctx.send(f"Your schedule for {day} is from {start} to {end}.")
+            else:
+                await ctx.send(f"You have not entered a schedule for {day}.")
+        else:
+            days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+            for day in days:
+                await ctx.send(f"Enter start and end time for {day} (or enter 'none' if you don't wish to work):")
+                response = await self.bot.wait_for('message', check=lambda message: message.author == ctx.author)
+                if response.content.lower() == 'none':
+                    continue
+                else:
+                    start, end = response.content.split()
+                    c.execute("INSERT INTO workweek (day, start_time, end_time) VALUES (?,?,?)", (day, start, end))
+                    conn.commit()
+        # don't forget to close the connection when finished
+        conn.close()
+         
 
 
 asyncio.run(bot.add_cog(BossBot(bot)))
