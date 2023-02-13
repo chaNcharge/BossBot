@@ -23,6 +23,7 @@ World: https://www.qppstudio.net/public-holidays/world.htm
 Quotes:
 
 https://www.brainyquote.com/quote_of_the_day
+https://wisdomquotes.com/quote-of-the-day/
 
 
 Pip:
