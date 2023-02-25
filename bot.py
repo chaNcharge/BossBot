@@ -43,27 +43,24 @@ name TEXT NOT NULL,
 birthday TIMESTAMP NOT NULL,
 has_role BOOLEAN NOT NULL,
 region TEXT NOT NULL,
-holiday TEXT NOT NULL,
-quote TEXT NOT NULL,
+holiday TEXT,
+quote TEXT,
 last_punch TIMESTAMP
-Monday_start TIME NOT NULL,
-Monday_end TIME NOT NULL,
-Tuesday_start TIME NOT NULL,
-Tuesday_end TIME NOT NULL,
-Wednesday_start TIME NOT NULL,
-Wednesday_end TIME NOT NULL,
-Thursday_start TIME NOT NULL,
-Thursday_end TIME NOT NULL,
-Friday_start TIME NOT NULL,
-Friday_end TIME NOT NULL,
+Monday_start TIME,
+Monday_end TIME,
+Tuesday_start TIME,
+Tuesday_end TIME,
+Wednesday_start TIME,
+Wednesday_end TIME,
+Thursday_start TIME,
+Thursday_end TIME,
+Friday_start TIME,
+Friday_end TIME,
 Saturday_start TIME,
 Saturday_end TIME,
 Sunday_start TIME,
 Sunday_end TIME 
 );""")
-
-# call the function to update database
-get_RegionHDays(cur , con)
  
 class BossBot(Cog):
     def __init__(self, bot):
@@ -164,11 +161,16 @@ class BossBot(Cog):
                 content=f"~~{region_msg.clean_content}~~\n\nTimed out, please run `!register` again."()
                 )
         region = userResponse.content
-
-        cur.execute(f"""INSERT INTO {table_name} (user_id, name, birthday, region, has_role) 
-        VALUES ({ctx.author.id}, "{name}", "{date.strftime("%Y-%m-%d")} 00:00:00", "{region}", False)""")
+        # TODO: Add error checking
+        
+        # insert holidays based on region
+        # inserts as abbreviated month
+        # Example: datetime.datetime.strptime('Mar\xa23','%b\xa%d').strftime('%m/%d')
+        holidays = get_RegionHDays(region)
+        cur.execute(f"""INSERT INTO {table_name} (user_id, name, birthday, region, holiday, has_role) 
+        VALUES ({ctx.author.id}, "{name}", "{date.strftime("%Y-%m-%d")} 00:00:00", "{region}", "{','.join(holidays)}", False)""")
+        
         con.commit()
-
         await ctx.send(f"Registered as {name} form {region} with birthday {date.strftime('%B %d, %Y')}.")
         
     @commands.command()
