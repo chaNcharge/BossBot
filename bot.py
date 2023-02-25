@@ -177,16 +177,15 @@ class BossBot(Cog):
     async def today(self, ctx):
         """Shows data for data base on todays date based off in put form user"""
         quote = get_quote_of_the_day()
-        cur.execute("SELECT region, holiday FROM schedule WHERE name = ?", (ctx.name,))
-        data = cur.fetchone()
-        region = data[0]
-        holidays = data[1]
-        today = datetime.date.today().strftime("%B %d")
-        
+        cur.execute(f"SELECT holiday FROM schedule WHERE user_id = {ctx.user_id}")
+        holidays = cur.fetchone[0]
+        today = datetime.date.strptime('%b %d')
+        #await ctx.send(f"{quote}")
+        #get dayly quote runing and test
         if today in holidays:
-            await ctx.send("Today is a holiday in your region. Enjoy the day off!")
+            await ctx.send(f"Today is a holiday in your Region. Enjoy the day off!")
         else:
-            await ctx.send("Get back to work! Toady is not a holiday in your region.")
+            await ctx.send("Get back to work! Toady is not a holiday in your region if you are not sure if you work try `!work_scedule`.")
         
         con.close()
 
@@ -227,7 +226,7 @@ class BossBot(Cog):
                 await ctx.send(f"{ctx.author.mention} get back to work!")
     
     @commands.command()
-    async def schedule(self, ctx, *, day=None):
+    async def work_schedule(self, ctx, *, day=None):
         """Prompts the user to enter their work week schedule or retrieves their schedule for a specific day."""
         if day:
             con.execute("SELECT start_time, end_time FROM workweek WHERE day=?", (day,))
