@@ -158,7 +158,7 @@ class BossBot(Cog):
             userResponse = await self.bot.wait_for('message', timeout=30.0, check=check_region)
         except asyncio.TimeoutError:
             return await region_msg.edit(
-                content=f"~~{region_msg.clean_content}~~\n\nTimed out, please run `!register` again."()
+                content=f"~~{region_msg.clean_content}~~\n\nTimed out, please run `!register` again."
                 )
         region = userResponse.content
         # TODO: Add error checking
@@ -176,12 +176,12 @@ class BossBot(Cog):
     @commands.command()
     async def today(self, ctx):
         """Shows data for data base on todays date based off in put form user"""
-        quote = dayQuote.get_quote_of_the_day()
+        quote = get_quote_of_the_day()
         cur.execute("SELECT region, holiday FROM schedule WHERE name = ?", (ctx.name,))
         data = cur.fetchone()
         region = data[0]
         holidays = data[1]
-        today = datetime.data.today().strftime("%B %d")
+        today = datetime.date.today().strftime("%B %d")
         
         if today in holidays:
             await ctx.send("Today is a holiday in your region. Enjoy the day off!")
