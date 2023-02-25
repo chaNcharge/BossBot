@@ -6,7 +6,7 @@ import asyncio
 import re
 import datetime
 
-form dayQuote import get_quote_of_the_day
+from dayQuote import get_quote_of_the_day
 from regionHoliday import get_RegionHDays
 from discord.ext import commands
 from discord.ext.commands import errors, Cog
@@ -56,10 +56,10 @@ Thursday_start TIME NOT NULL,
 Thursday_end TIME NOT NULL,
 Friday_start TIME NOT NULL,
 Friday_end TIME NOT NULL,
-Saturday_start TIME NOT NULL,
-Saturday_end TIME NOT NULL,
-Sunday_start TIME NOT NULL,
-Sunday_end TIME NOT NULL
+Saturday_start TIME,
+Saturday_end TIME,
+Sunday_start TIME,
+Sunday_end TIME 
 );""")
 
 # call the function to update database
@@ -161,21 +161,21 @@ class BossBot(Cog):
             userResponse = await self.bot.wait_for('message', timeout=30.0, check=check_region)
         except asyncio.TimeoutError:
             return await region_msg.edit(
-                content=f"~~{region_msg.clean_content}~~\n\nTimed out, please run `!register` again."(
-            )
+                content=f"~~{region_msg.clean_content}~~\n\nTimed out, please run `!register` again."()
+                )
         region = userResponse.content
 
         cur.execute(f"""INSERT INTO {table_name} (user_id, name, birthday, region, has_role) 
         VALUES ({ctx.author.id}, "{name}", "{date.strftime("%Y-%m-%d")} 00:00:00", "{region}", False)""")
         con.commit()
 
-        await ctx.send(f"Registered as {name} form {region} with birthday {date.strftime('%B %d, %Y')}."
+        await ctx.send(f"Registered as {name} form {region} with birthday {date.strftime('%B %d, %Y')}.")
         
     @commands.command()
     async def today(self, ctx):
         """Shows data for data base on todays date based off in put form user"""
         quote = dayQuote.get_quote_of_the_day()
-        cur.execute("SELECT region, holiday FROM schedule WHERE username = ?", (username,))
+        cur.execute("SELECT region, holiday FROM schedule WHERE name = ?", (ctx.name,))
         data = cur.fetchone()
         region = data[0]
         holidays = data[1]
@@ -188,9 +188,9 @@ class BossBot(Cog):
         
         con.close()
 
-   @commands.command()
+    @commands.command()
     async def schedule(self, ctx):
-    """Prompts the user to enter their work week schedule."""
+        """Prompts the user to enter their work week schedule."""
         days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     
         for day in days:
@@ -200,21 +200,21 @@ class BossBot(Cog):
                 continue
             else:
                 start, end = response.content.split()
-                c.execute("INSERT INTO workweek (day, start_time, end_time) VALUES (?,?,?)", (day, start, end))
-                conn.commit()
-    # don't forget to close the connection when finished
-    conn.close()
+                con.execute("INSERT INTO workweek (day, start_time, end_time) VALUES (?,?,?)", (day, start, end))
+                con.commit()
+        # don't forget to close the connection when finished
+        con.close()
 
     @commands.command()
     async def check_work(self, ctx):
-    """Checks if a user is offline during their work hours."""
+        """Checks if a user is offline during their work hours."""
         # get the current time
         now = datetime.datetime.now()
         current_hour = now.hour
 
         # get the user's work hours from the database
-        c.execute("SELECT day, start_time, end_time FROM workweek WHERE user_id=?", (ctx.author.id,))
-        work_hours = c.fetchone()
+        con.execute("SELECT day, start_time, end_time FROM workweek WHERE user_id=?", (ctx.author.id,))
+        work_hours = con.fetchone()
         if work_hours is None:
             await ctx.send("You haven't set your work week schedule yet. Please use the `!schedule` command to set it.")
             return
@@ -226,10 +226,10 @@ class BossBot(Cog):
     
     @commands.command()
     async def schedule(self, ctx, *, day=None):
-    """Prompts the user to enter their work week schedule or retrieves their schedule for a specific day."""
+        """Prompts the user to enter their work week schedule or retrieves their schedule for a specific day."""
         if day:
-            c.execute("SELECT start_time, end_time FROM workweek WHERE day=?", (day,))
-            schedule = c.fetchone()
+            con.execute("SELECT start_time, end_time FROM workweek WHERE day=?", (day,))
+            schedule = con.fetchone()
             if schedule:
                 start, end = schedule
                 await ctx.send(f"Your schedule for {day} is from {start} to {end}.")
@@ -244,10 +244,10 @@ class BossBot(Cog):
                     continue
                 else:
                     start, end = response.content.split()
-                    c.execute("INSERT INTO workweek (day, start_time, end_time) VALUES (?,?,?)", (day, start, end))
-                    conn.commit()
+                    con.execute("INSERT INTO workweek (day, start_time, end_time) VALUES (?,?,?)", (day, start, end))
+                    con.commit()
         # don't forget to close the connection when finished
-        conn.close()
+        con.close()
          
 
 
