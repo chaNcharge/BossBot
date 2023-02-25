@@ -158,7 +158,7 @@ class BossBot(Cog):
             userResponse = await self.bot.wait_for('message', timeout=30.0, check=check_region)
         except asyncio.TimeoutError:
             return await region_msg.edit(
-                content=f"~~{region_msg.clean_content}~~\n\nTimed out, please run `!register` again."()
+                content=f"~~{region_msg.clean_content}~~\n\nTimed out, please run `!register` again."
                 )
         region = userResponse.content
         # TODO: Add error checking
