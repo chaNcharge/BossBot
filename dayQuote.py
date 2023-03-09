@@ -2,7 +2,6 @@
 #form They Said So Quotes API
 # referance document https://quotes.rest/
 import requests
-import json
 
 def get_quote_of_the_day():
     response = requests.get("https://quotes.rest/qod")
