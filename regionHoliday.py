@@ -26,7 +26,7 @@ def get_RegionHDays(R):
 
     # Extract dates with specified datetime attribute
     dates = []
-    for time_elem in browser.page.find_all("time", {"datetime": "2023-03-20"}):
+    for time_elem in browser.page.find_all("time", {"datetime": True}):
         dates.append(time_elem.text)
 
     # Insert data into database for user
