@@ -143,8 +143,11 @@ class BossBot(Cog):
             return await birthday_msg.edit(
                 content=f"~~{start_msg.clean_content}~~\n\nTimed out or invalid inputs, please run register again."
             )
-        date = datetime.datetime.strptime(
-            userResponse.content.split(" ")[0], "%m/%d/%Y")
+        
+        try:
+            date = datetime.datetime.strptime(userResponse.content.split(" ")[0], "%m/%d/%Y")
+        except ValueError:
+            return await brithday_msg.edit( content=f"~~{start_msg.clean_content}~~\n\nInvalid date format. Please run register again.")
         
         # Region prompt
         region_msg = await ctx.send(f"Hello, **{name}**, now enter your region.")
@@ -153,7 +156,6 @@ class BossBot(Cog):
             if (m.author == ctx.author and m.channel == ctx.channel):
                 return True
             return False
-
         try:
             userResponse = await self.bot.wait_for('message', timeout=30.0, check=check_region)
         except asyncio.TimeoutError:
@@ -162,13 +164,16 @@ class BossBot(Cog):
                 )
         region = userResponse.content
         # TODO: Add error checking
-        
+
         # insert holidays based on region
         # inserts as abbreviated month
         # Example: datetime.datetime.strptime('Mar\xa23','%b\xa%d').strftime('%m/%d')
         holidays = get_RegionHDays(region)
-        cur.execute(f"""INSERT INTO {table_name} (user_id, name, birthday, region, holiday, has_role) 
-        VALUES ({ctx.author.id}, "{name}", "{date.strftime("%Y-%m-%d")} 00:00:00", "{region}", "{','.join(holidays)}", False)""")
+        try:
+            cur.execute(f"""INSERT INTO {table_name} (user_id, name, birthday, region, holiday, has_role) 
+                VALUES ({ctx.author.id}, "{name}", "{date.strftime("%Y-%m-%d")} 00:00:00", "{region}", "{','.join(holidays)}", False)""")
+        except sqlite3.Error as e:
+            return await ctx.send(f"An error occurred while registering: {e}")
         
         con.commit()
         await ctx.send(f"Registered as {name} form {region} with birthday {date.strftime('%B %d, %Y')}.")

@@ -1,12 +1,15 @@
 #quote_of_the_day
+#form They Said So Quotes API
+# referance document https://quotes.rest/
 import requests
-import json
 
 def get_quote_of_the_day():
-    response = requests.get("https://www.brainyquote.com/quote_of_the_day/qod.json")
-    if response.status_code == 200:
-        data = json.loads(response.text)
+    try:
+        response = requests.get("https://quotes.rest/qod")
+        response.raise_for_status()  # raise an exception if the response status code is not 200
+        data = response.json()
         quote = data["contents"]["quotes"][0]["quote"]
-        return quote
-    else:
-        return "Sorry, I was unable to get the quote of the day."
+        author = data["contents"]["quotes"][0]["author"]
+        return f"\"{quote}\" - {author}"
+    except (requests.exceptions.RequestException, IndexError, KeyError) as err:
+        return f"Sorry, I was unable to get the quote of the day. Error: {str(err)}"
