@@ -4,11 +4,12 @@
 import requests
 
 def get_quote_of_the_day():
-    response = requests.get("https://quotes.rest/qod")
-    data = response.json()
-    if response.status_code == 200:
+    try:
+        response = requests.get("https://quotes.rest/qod")
+        response.raise_for_status()  # raise an exception if the response status code is not 200
+        data = response.json()
         quote = data["contents"]["quotes"][0]["quote"]
         author = data["contents"]["quotes"][0]["author"]
-        print(f"\"{quote}\" - {author}")
-    else:
-        return "Sorry, I was unable to get the quote of the day."
+        return f"\"{quote}\" - {author}"
+    except (requests.exceptions.RequestException, IndexError, KeyError) as err:
+        return f"Sorry, I was unable to get the quote of the day. Error: {str(err)}"
