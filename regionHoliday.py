@@ -15,13 +15,19 @@ def get_RegionHDays(R):
         'Oceania': 'https://www.qppstudio.net/public-holidays/oceania.htm',
         'World': 'https://www.qppstudio.net/public-holidays/world.htm'
     }
-    # retrive website based on region
-    website = regions[R]
-    # make request to website and retrive the content
+    # Retrieve website based on region
+    website = regions.get(R)
+    if not website:
+        return None
+
+    # Make request to website and retrieve the content
     browser = mechanicalsoup.StatefulBrowser()
     browser.open(website)
-    # extract table header
-    date_time = browser.page.find_all("time")
-    dates = [value.text for value in date_time]
-    #insert data in to database into database for user
+
+    # Extract dates with specified datetime attribute
+    dates = []
+    for time_elem in browser.page.find_all("time", {"datetime": "2023-03-20"}):
+        dates.append(time_elem.text)
+
+    # Insert data into database for user
     return dates
