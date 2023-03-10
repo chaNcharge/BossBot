@@ -1,7 +1,7 @@
 #quote_of_the_day
 #form They Said So Quotes API
 # referance document https://quotes.rest/
-import requests
+import requestsgit 
 
 def get_quote_of_the_day():
     try:
