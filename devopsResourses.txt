@@ -24,7 +24,7 @@ Quotes:
 
 https://www.brainyquote.com/quote_of_the_day
 https://wisdomquotes.com/quote-of-the-day/
-
+https://quotes.rest/
 
 Pip:
 https://www.geeksforgeeks.org/install-packages-using-pip-with-requirements-txt-file-in-python/
