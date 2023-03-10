@@ -156,7 +156,6 @@ class BossBot(Cog):
             if (m.author == ctx.author and m.channel == ctx.channel):
                 return True
             return False
-
         try:
             userResponse = await self.bot.wait_for('message', timeout=30.0, check=check_region)
         except asyncio.TimeoutError:
