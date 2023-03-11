@@ -1,11 +1,11 @@
-## BossBot
+# BossBot
 This is a discord bot that was made to help manage Human Resources. It was made as a proof of concept and to be helpful for discord moderators. Our hope are to eventually make this a more polished version for Slack and professional setting.
 
-# BossBot Functionality
+## BossBot Functionality
 
 BossBot function was to help with scheduling and personnel records and helping with timely clock in and Quick and easy check for regional holidays to prevent time theft.
 
-# Commands
+## Commands
 
 * `!ping`: test if there is a connection
 * `!echo`: Test to see if sever is active
@@ -15,7 +15,7 @@ BossBot function was to help with scheduling and personnel records and helping w
 * `!check_work`: This command is a Passive checks to see if the user is online and punched in and also punched out at end of day.
 * `!work_schedule`: User inputs a date and then the bot will show if they have work on that day.
  
-# How to set up
+## How to set up
 0. Install python 3
 1. Download or clone the repository
 2. Copy `config.json.example` as `config.json`
@@ -24,5 +24,5 @@ BossBot function was to help with scheduling and personnel records and helping w
 5. Run `python bot.py`
 
 
-# Authors
+## Authors
 Ethan Cha, Daniel Willard
