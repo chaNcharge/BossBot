@@ -45,7 +45,7 @@ has_role BOOLEAN NOT NULL,
 region TEXT NOT NULL,
 holiday TEXT,
 quote TEXT,
-last_punch TIMESTAMP
+last_punch TIMESTAMP,
 Monday_start TIME,
 Monday_end TIME,
 Tuesday_start TIME,
@@ -163,7 +163,7 @@ class BossBot(Cog):
                 content=f"~~{region_msg.clean_content}~~\n\nTimed out, please run `!register` again."
                 )
         region = userResponse.content
-        # TODO: Add error checking
+        # TODO: Test this real quick for error checking, fix if time
 
         # insert holidays based on region
         # inserts as abbreviated month
@@ -176,11 +176,12 @@ class BossBot(Cog):
             return await ctx.send(f"An error occurred while registering: {e}")
         
         con.commit()
-        await ctx.send(f"Registered as {name} form {region} with birthday {date.strftime('%B %d, %Y')}.")
+        await ctx.send(f"Registered as {name} from {region} with birthday {date.strftime('%B %d, %Y')}.")
         
     @commands.command()
     async def today(self, ctx):
         """Shows data for data base on todays date based off in put form user"""
+        #TODO Finish quote of the day
         quote = get_quote_of_the_day()
         cur.execute(f"SELECT holiday FROM schedule WHERE user_id = {ctx.author.id}")
         holidays = cur.fetchone()[0]
@@ -192,8 +193,6 @@ class BossBot(Cog):
             await ctx.send(f"Today is a holiday in your Region. Enjoy the day off!")
         else:
             await ctx.send("Get back to work! Today is not a holiday in your region. If you are not sure if you work try `!schedule`.")
-        
-        con.close()
 
     @commands.command()
     async def schedule(self, ctx):
@@ -201,16 +200,23 @@ class BossBot(Cog):
         days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     
         for day in days:
-            await ctx.send(f"Enter start and end time for {day} (or enter 'none' if you don't wish to work):")
-            response = await self.bot.wait_for('message', check=lambda message: message.author == ctx.author)
+            start_msg = await ctx.send(f"Enter start and end time for **{day}** (or enter 'none' if you don't wish to work). Enter the start and end time range as 24 hour time hh:mm hh:mm, separated by a space. Example `9:00 17:00` to start at 9:00 and end at 17:00.")
+            # No requirements for name, whatever the user inputs, that's their name
+            def check_time(m):
+                return True
+            try:
+                response = await self.bot.wait_for('message', timeout=30.0, check=check_time)
+            except asyncio.TimeoutError:
+                return await start_msg.edit(
+                    content=f"~~{start_msg.clean_content}~~\n\nTimed out, please run register again."
+            )
             if response.content.lower() == 'none':
                 continue
             else:
-                start, end = response.content.split()
-                con.execute("INSERT INTO workweek (day, start_time, end_time) VALUES (?,?,?)", (day, start, end))
+                start, end = response.content.split() # start and end times
+                cur.execute(f'UPDATE schedule SET {day}_start="{start}", {day}_end="{end}" WHERE user_id={ctx.author.id};')
                 con.commit()
-        # don't forget to close the connection when finished
-        con.close()
+        #TODO Add confirm message
 
     @commands.command()
     async def check_work(self, ctx):
@@ -243,6 +249,7 @@ class BossBot(Cog):
             else:
                 await ctx.send(f"You have not entered a schedule for {day}.")
         else:
+            #TODO Remove redundancy, rework to print the work schedule
             days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
             for day in days:
                 await ctx.send(f"Enter start and end time for {day} (or enter 'none' if you don't wish to work):")
@@ -253,8 +260,6 @@ class BossBot(Cog):
                     start, end = response.content.split()
                     con.execute("INSERT INTO workweek (day, start_time, end_time) VALUES (?,?,?)", (day, start, end))
                     con.commit()
-        # don't forget to close the connection when finished
-        con.close()
          
 
 
