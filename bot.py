@@ -176,7 +176,7 @@ class BossBot(Cog):
             return await ctx.send(f"An error occurred while registering: {e}")
         
         con.commit()
-        await ctx.send(f"Registered as {name} form {region} with birthday {date.strftime('%B %d, %Y')}.")
+        await ctx.send(f"Registered as {name} from {region} with birthday {date.strftime('%B %d, %Y')}.")
         
     @commands.command()
     async def today(self, ctx):
