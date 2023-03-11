@@ -147,7 +147,7 @@ class BossBot(Cog):
         try:
             date = datetime.datetime.strptime(userResponse.content.split(" ")[0], "%m/%d/%Y")
         except ValueError:
-            return await brithday_msg.edit( content=f"~~{start_msg.clean_content}~~\n\nInvalid date format. Please run register again.")
+            return await birthday_msg.edit( content=f"~~{start_msg.clean_content}~~\n\nInvalid date format. Please run register again.")
         
         # Region prompt
         region_msg = await ctx.send(f"Hello, **{name}**, now enter your region.")
