@@ -22,3 +22,7 @@ BossBot function was to help with scheduling and personnel records and helping w
 3. Insert your bots token from https://discord.com/developers/applications into the `token` field
 4. Run `pip install -r requirements.txt` to install required packages
 5. Run `python bot.py`
+
+
+# Authors
+Ethan Cha, Daniel Willard
