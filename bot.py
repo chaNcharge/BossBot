@@ -238,7 +238,6 @@ class BossBot(Cog):
     
     @commands.command()
     async def work_schedule(self, ctx):
-        
         """Retrieves the user's schedule for a specific date."""
         await ctx.send("Please enter the date you would like to know about in the following format `MM/DD/YYYY`:")
         response = await self.bot.wait_for('message', check=lambda message: message.author == ctx.author)
@@ -254,21 +253,36 @@ class BossBot(Cog):
         if result:
             day_of_week = date.strftime('%A').lower()
             day_of_week = day_of_week[0].upper() + day_of_week[1:].lower()
-            start_time = result[f"{day_of_week}_start"]
-            await ctx.send(f"start {start_time}")
-            end_time = result[f"{day_of_week}_end"]
-            await ctx.send(f" end{end_time}")
+            dow_start = day_of_week + '_start'
+            dow_end = day_of_week + '_end'
+            start_time_index = None
+            end_time_index = None
+            bday_index = 2
+            holiday_index = 5
+            for i, column in enumerate(cur.description):
+                if column[0] ==  dow_start:
+                    start_time_index = i
+                elif column[0] == dow_end:
+                    end_time_index = i
+            if start_time_index is None or end_time_index is None:
+                await ctx.send(f"You have not entered a schedule for {day_of_week.capitalize()} ({date_str}).")
+                return
+            start_time = result[start_time_index]
+            end_time = result[end_time_index]
             if start_time and end_time:
                 # Check for holiday
-                holiday = result["holiday"]
-                await ctx.send(f"holiday {holiday}")
-                if holiday == date_str:
+                holidays = result[holiday_index]
+                date = datetime.datetime.strptime(date_str, '%m/%d/%Y')
+                date_form = date.strftime('%b\xa%d')
+                holidays = holidays.split(",")
+                if date_form in holidays:
                     await ctx.send(f"Today is a holiday and you have the day off!")
                     return
                 # Check for birthday
-                birthday = result["birthday"].strftime('%m/%d')
-                await ctx.send(f"birthday {birthday}")
-                if birthday == date_str[0:5]:
+                birthday = result[bday_index]
+                bday = datetime.datetime.strptime(birthday,'%Y-%m-%d %H:%M:%S')
+                bdFomat = bday.strftime('%m/%d')
+                if bdFomat == date_str[0:5]:
                     await ctx.send(f"Today is your birthday and you have the day off!")
                     return
                 await ctx.send(f"Your schedule for {date_str} ({day_of_week.capitalize()}) is from {start_time} to {end_time}.")
