@@ -184,7 +184,7 @@ class BossBot(Cog):
         quote = get_quote_of_the_day()
         cur.execute(f"SELECT holiday FROM schedule WHERE user_id = {ctx.author.id}")
         holidays = cur.fetchone()[0]
-        today = datetime.date.today().strftime('%b\\xa%d')
+        today = datetime.date.today().strftime('%Y-%m-%d')
         await ctx.send(f"{quote}")
         holidays = holidays.split(",")
         if today in holidays:
@@ -273,7 +273,7 @@ class BossBot(Cog):
                 # Check for holiday
                 holidays = result[holiday_index]
                 date = datetime.datetime.strptime(date_str, '%m/%d/%Y')
-                date_form = date.strftime('%b\xa%d')
+                date_form = date.strftime('%Y-%m-%d')
                 holidays = holidays.split(",")
                 if date_form in holidays:
                     await ctx.send(f"Today is a holiday and you have the day off!")
