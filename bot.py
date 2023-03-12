@@ -290,7 +290,7 @@ class BossBot(Cog):
                 await ctx.send(f"You have not entered a schedule for {day_of_week.capitalize()} ({date_str}).")
         else:
             await ctx.send("You have not set up a schedule yet. Please run `!schedule`!")
-        #TODO Remove redundancy, rework to print the work schedule
+        #TODO Remove redundancy, rework to print the work schedule (done)
     
 
     # punch in famework added to help aliviate code stress on ethan
