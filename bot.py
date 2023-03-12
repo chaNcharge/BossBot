@@ -45,7 +45,7 @@ has_role BOOLEAN NOT NULL,
 region TEXT NOT NULL,
 holiday TEXT,
 quote TEXT,
-last_punch TIMESTAMP
+last_punch TIMESTAMP,
 Monday_start TIME,
 Monday_end TIME,
 Tuesday_start TIME,
