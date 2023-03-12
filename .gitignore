@@ -1,2 +1,4 @@
 config.json
 schedule.db
+__pycache__
+.idea
