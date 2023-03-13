@@ -12,6 +12,7 @@ from discord.ext import commands
 from discord.ext.commands import errors, Cog
 from collections import namedtuple
 
+
 def readConfig(file):
     try:
         with open(file, encoding='utf8') as data:
@@ -20,6 +21,7 @@ def readConfig(file):
         raise AttributeError("Unknown argument") from exc
     except FileNotFoundError as exc:
         raise FileNotFoundError("JSON file wasn't found") from exc
+
 
 # Initialization
 config = readConfig("config.json")  # Config
@@ -61,7 +63,8 @@ Sunday_start TIME,
 Sunday_end TIME,
 work_role_id INT
 );""")
- 
+
+
 class BossBot(Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -105,7 +108,7 @@ class BossBot(Cog):
 
     @commands.Cog.listener()
     # hello bot function
-    async def on_member_join(self, member): 
+    async def on_member_join(self, member):
         channel = member.guild.system_channel
         if channel is not None:
             await channel.send(f"Hello! Welcome {member.mention} to the server!")
@@ -143,12 +146,13 @@ class BossBot(Cog):
             return await birthday_msg.edit(
                 content=f"~~{start_msg.clean_content}~~\n\nTimed out or invalid inputs, please run register again."
             )
-        
+
         try:
-            date = datetime.datetime.strptime(userResponse.content.split(" ")[0], "%m/%d/%Y")
+            date = datetime.datetime.strptime(
+                userResponse.content.split(" ")[0], "%m/%d/%Y")
         except ValueError:
-            return await birthday_msg.edit( content=f"~~{start_msg.clean_content}~~\n\nInvalid date format. Please run register again.")
-        
+            return await birthday_msg.edit(content=f"~~{start_msg.clean_content}~~\n\nInvalid date format. Please run register again.")
+
         # Region prompt
         region_msg = await ctx.send(f"Hello, **{name}**, now enter your region form the fallowing Region list: `North America`,`Central America`,`South America`,`Europe`,`Asia`,`Middle East`,`Africa`,`Oceania`,`World`")
 
@@ -161,7 +165,7 @@ class BossBot(Cog):
         except asyncio.TimeoutError:
             return await region_msg.edit(
                 content=f"~~{region_msg.clean_content}~~\n\nTimed out, please run `!register` again."
-                )
+            )
         region = userResponse.content
 
         # insert holidays based on region
@@ -173,15 +177,16 @@ class BossBot(Cog):
                 VALUES ({ctx.author.id}, "{name}", "{date.strftime("%Y-%m-%d")} 00:00:00", "{region}", "{','.join(holidays)}", False)""")
         except sqlite3.Error as e:
             return await ctx.send(f"An error occurred while registering: {e}. PLEASE RETRY `!register` and ensure to enter data in the correct format")
-        
+
         con.commit()
         await ctx.send(f"Registered as {name} from {region} with birthday {date.strftime('%B %d, %Y')}.")
-        
+
     @commands.command()
     async def today(self, ctx):
         """Shows data for data base on todays date based off in put from user"""
         quote = get_quote_of_the_day()
-        cur.execute(f"SELECT holiday FROM schedule WHERE user_id = {ctx.author.id}")
+        cur.execute(
+            f"SELECT holiday FROM schedule WHERE user_id = {ctx.author.id}")
         holidays = cur.fetchone()[0]
         today = datetime.date.today().strftime('%Y-%m-%d')
         await ctx.send(f"{quote}")
@@ -194,11 +199,13 @@ class BossBot(Cog):
     @commands.command()
     async def schedule(self, ctx):
         """Prompts the user to enter their work week schedule."""
-        days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-    
+        days = ['Monday', 'Tuesday', 'Wednesday',
+                'Thursday', 'Friday', 'Saturday', 'Sunday']
+
         for day in days:
             start_msg = await ctx.send(f"Enter start and end time for **{day}** (or enter 'none' if you don't wish to work). Enter the start and end time range as 24 hour time hh:mm hh:mm, separated by a space. Example `9:00 17:00` to start at 9:00 and end at 17:00.")
             # No requirements for name, whatever the user inputs, that's their name
+
             def check_time(m):
                 return True
             try:
@@ -206,12 +213,13 @@ class BossBot(Cog):
             except asyncio.TimeoutError:
                 return await start_msg.edit(
                     content=f"~~{start_msg.clean_content}~~\n\nTimed out, please run schedule again."
-            )
+                )
             if response.content.lower() == 'none':
                 continue
             else:
-                start, end = response.content.split() # start and end times
-                cur.execute(f'UPDATE {table_name} SET {day}_start="{start}", {day}_end="{end}" WHERE user_id={ctx.author.id};')
+                start, end = response.content.split()  # start and end times
+                cur.execute(
+                    f'UPDATE {table_name} SET {day}_start="{start}", {day}_end="{end}" WHERE user_id={ctx.author.id};')
                 con.commit()
         await ctx.send(f"Thank you for entering your schedule. Welcome to Umbrella Corp. Enjoy your stay!")
 
@@ -225,12 +233,13 @@ class BossBot(Cog):
         guild = ctx.author.guild
         work_role = guild.get_role(config.work_role_id)
 
-        if user_id: # Run if user id is provided
+        if user_id:  # Run if user id is provided
             cur.execute("SELECT name FROM schedule WHERE user_id=?", [user_id])
             name = cur.fetchone()[0]
             member = guild.get_member(int(user_id))
             # get the user's work hours from the database
-            cur.execute(f"SELECT {now_weekday}_start, {now_weekday}_end FROM schedule WHERE user_id=?", [user_id])
+            cur.execute(
+                f"SELECT {now_weekday}_start, {now_weekday}_end FROM schedule WHERE user_id=?", [user_id])
             work_hours = cur.fetchone()
             if work_hours is None:
                 await ctx.send(f"{name} is off today.")
@@ -244,9 +253,10 @@ class BossBot(Cog):
             else:
                 await ctx.send(f"{name} is not scheduled to work at this time today.")
 
-        else: # Default to author
+        else:  # Default to author
             # get the user's work hours from the database
-            cur.execute(f"SELECT {now_weekday}_start, {now_weekday}_end FROM schedule WHERE user_id=?", [ctx.author.id])
+            cur.execute(f"SELECT {now_weekday}_start, {now_weekday}_end FROM schedule WHERE user_id=?", [
+                        ctx.author.id])
             work_hours = cur.fetchone()
             if work_hours is None:
                 await ctx.send("You are off today, enjoy the day off!")
@@ -259,7 +269,7 @@ class BossBot(Cog):
                     await ctx.send("You are currently punched in and working on schedule. Keep up the good work and do not lose focus!")
             else:
                 await ctx.send("You are not scheduled to work at this time today. Enjoy the time off for now!")
-    
+
     @commands.command()
     async def work_schedule(self, ctx):
         """Retrieves the user's schedule for a specific date."""
@@ -284,7 +294,7 @@ class BossBot(Cog):
             bday_index = 2
             holiday_index = 5
             for i, column in enumerate(cur.description):
-                if column[0] ==  dow_start:
+                if column[0] == dow_start:
                     start_time_index = i
                 elif column[0] == dow_end:
                     end_time_index = i
@@ -304,7 +314,8 @@ class BossBot(Cog):
                     return
                 # Check for birthday
                 birthday = result[bday_index]
-                bday = datetime.datetime.strptime(birthday,'%Y-%m-%d %H:%M:%S')
+                bday = datetime.datetime.strptime(
+                    birthday, '%Y-%m-%d %H:%M:%S')
                 bdFomat = bday.strftime('%m/%d')
                 if bdFomat == date_str[0:5]:
                     await ctx.send(f"Today is your birthday and you have the day off!")
@@ -314,7 +325,6 @@ class BossBot(Cog):
                 await ctx.send(f"You have not entered a schedule for {day_of_week.capitalize()} ({date_str}).")
         else:
             await ctx.send("You have not set up a schedule yet. Please run `!schedule`!")
-    
 
     @commands.command()
     async def punch(self, ctx):
