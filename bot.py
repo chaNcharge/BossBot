@@ -60,8 +60,7 @@ Friday_end TIME,
 Saturday_start TIME,
 Saturday_end TIME,
 Sunday_start TIME,
-Sunday_end TIME,
-work_role_id INT
+Sunday_end TIME
 );""")
 
 
