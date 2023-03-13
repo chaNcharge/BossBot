@@ -58,7 +58,8 @@ Friday_end TIME,
 Saturday_start TIME,
 Saturday_end TIME,
 Sunday_start TIME,
-Sunday_end TIME 
+Sunday_end TIME,
+work_role_id INT
 );""")
  
 class BossBot(Cog):
@@ -162,7 +163,6 @@ class BossBot(Cog):
                 content=f"~~{region_msg.clean_content}~~\n\nTimed out, please run `!register` again."
                 )
         region = userResponse.content
-        # TODO: Test this real quick for error checking, fix if time (done)
 
         # insert holidays based on region
         # inserts as abbreviated month
@@ -179,8 +179,7 @@ class BossBot(Cog):
         
     @commands.command()
     async def today(self, ctx):
-        """Shows data for data base on todays date based off in put form user"""
-        #TODO Finish quote of the day (done)
+        """Shows data for data base on todays date based off in put from user"""
         quote = get_quote_of_the_day()
         cur.execute(f"SELECT holiday FROM schedule WHERE user_id = {ctx.author.id}")
         holidays = cur.fetchone()[0]
@@ -190,7 +189,7 @@ class BossBot(Cog):
         if today in holidays:
             await ctx.send(f"Today is a holiday in your Region. Enjoy the day off!")
         else:
-            await ctx.send("Get back to work! Today is not a holiday in your region. If you are not sure if you work try `!work_schedule`.")
+            await ctx.send("Today is not a holiday in your region. If you are not sure if you work try `!work_schedule`.")
 
     @commands.command()
     async def schedule(self, ctx):
@@ -214,27 +213,29 @@ class BossBot(Cog):
                 start, end = response.content.split() # start and end times
                 cur.execute(f'UPDATE {table_name} SET {day}_start="{start}", {day}_end="{end}" WHERE user_id={ctx.author.id};')
                 con.commit()
-        #TODO Add confirm message (done)
         await ctx.send(f"Thank you for entering your schedule. Welcome to Umbrella Corp. Enjoy your stay!")
 
     @commands.command()
-    async def check_work(self, ctx):
-        """Checks if a user is offline during their work hours Uses punch in time and punch out time."""
+    async def check_work(self, ctx, user_id=None):
+        """Checks if user is offline during their work hours today. Uses punch in time and punch out time. Defaults to current user"""
         # get the current time
         now = datetime.datetime.now()
+        now_weekday = now.strftime('%A')
         current_hour = now.hour
 
         # get the user's work hours from the database
-        con.execute("SELECT day, start_time, end_time FROM workweek WHERE user_id=?", (ctx.author.id,))
-        work_hours = con.fetchone()
+        cur.execute(f"SELECT {now_weekday}_start, {now_weekday}_end FROM schedule WHERE user_id=?", [ctx.author.id])
+        work_hours = cur.fetchone()
         if work_hours is None:
-            await ctx.send("You haven't set your work week schedule yet. Please use the `!schedule` command to set it.")
+            await ctx.send("You are off today, enjoy the day off!")
             return
 
-        day = datetime.datetime.today().strftime('%A')
-        if day == work_hours[0] and (current_hour >= int(work_hours[1]) and current_hour <= int(work_hours[2])):
+        # Currently doesn't support overnight shifts
+        if current_hour >= int(work_hours[0].split(':')[0]) and current_hour <= int(work_hours[1].split(':')[0]):
             if ctx.author.status == discord.Status.offline:
                 await ctx.send(f"{ctx.author.mention} get back to work!")
+        else:
+            await ctx.send("You are not scheduled to work at this time today. Enjoy the time off for now!")
     
     @commands.command()
     async def work_schedule(self, ctx):
@@ -290,34 +291,29 @@ class BossBot(Cog):
                 await ctx.send(f"You have not entered a schedule for {day_of_week.capitalize()} ({date_str}).")
         else:
             await ctx.send("You have not set up a schedule yet. Please run `!schedule`!")
-        #TODO Remove redundancy, rework to print the work schedule (done)
     
 
-    # punch in famework added to help aliviate code stress on ethan
-    # time punch in command
-    #@commands.command()
-    #async def punch_in(ctx):
-        """Punches the user in for their shift."""
-        """user_id = ctx.author.id
-        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        con.execute("INSERT INTO {table_name} (user_id, punch_in) VALUES (?, ?)", (user_id, now))
-        con.commit()"""
-
-    # time punch out command
-    #@commands.command()
-    #async def punch_out(ctx):
-        """Punches the user out from their shift."""
-        """ user_id = ctx.author.id
-        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        con.execute("UPDATE {table_name} SET punch_out = ? WHERE user_id = ? AND punch_out IS NULL", (now, user_id))
+    @commands.command()
+    async def punch(self, ctx):
+        """Punches the user in/out for their shift. Toggles user's working role"""
+        user_id = ctx.author.id
+        cur.execute("SELECT name FROM schedule WHERE user_id=?", [user_id])
+        name = cur.fetchone()[0]
+        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        cur.execute("UPDATE schedule SET last_punch=? WHERE user_id=?",
+                    (now, user_id))
         con.commit()
-        if con.rowcount == 1:
-            await ctx.send(f"You have been punched out at {now}.")
+
+        # Get Work role object
+        guild = ctx.author.guild
+        work_role = guild.get_role(config.work_role_id)
+
+        if ctx.author in work_role.members:
+            await ctx.author.remove_roles(work_role)
+            await ctx.send(f"Thank you, {name}, you have punched out at {now}. Have a good rest of your day!")
         else:
-            await ctx.send("You are not currently punched in. Please Punch in")"""
-
-
-         
+            await ctx.author.add_roles(work_role)
+            await ctx.send(f"Thank you, {name}, you have punched in at {now}. Welcome in!")
 
 
 asyncio.run(bot.add_cog(BossBot(bot)))
