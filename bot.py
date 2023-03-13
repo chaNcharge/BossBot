@@ -217,25 +217,48 @@ class BossBot(Cog):
 
     @commands.command()
     async def check_work(self, ctx, user_id=None):
-        """Checks if user is offline during their work hours today. Uses punch in time and punch out time. Defaults to current user"""
+        """Checks if user is offline during their work hours today. Uses punch in time and punch out time. Defaults to current user if no user is provided."""
         # get the current time
         now = datetime.datetime.now()
         now_weekday = now.strftime('%A')
         current_hour = now.hour
+        guild = ctx.author.guild
+        work_role = guild.get_role(config.work_role_id)
 
-        # get the user's work hours from the database
-        cur.execute(f"SELECT {now_weekday}_start, {now_weekday}_end FROM schedule WHERE user_id=?", [ctx.author.id])
-        work_hours = cur.fetchone()
-        if work_hours is None:
-            await ctx.send("You are off today, enjoy the day off!")
-            return
+        if user_id: # Run if user id is provided
+            cur.execute("SELECT name FROM schedule WHERE user_id=?", [user_id])
+            name = cur.fetchone()[0]
+            member = guild.get_member(int(user_id))
+            # get the user's work hours from the database
+            cur.execute(f"SELECT {now_weekday}_start, {now_weekday}_end FROM schedule WHERE user_id=?", [user_id])
+            work_hours = cur.fetchone()
+            if work_hours is None:
+                await ctx.send(f"{name} is off today.")
 
-        # Currently doesn't support overnight shifts
-        if current_hour >= int(work_hours[0].split(':')[0]) and current_hour <= int(work_hours[1].split(':')[0]):
-            if ctx.author.status == discord.Status.offline:
-                await ctx.send(f"{ctx.author.mention} get back to work!")
-        else:
-            await ctx.send("You are not scheduled to work at this time today. Enjoy the time off for now!")
+            # Currently doesn't support overnight shifts
+            if current_hour >= int(work_hours[0].split(':')[0]) and current_hour <= int(work_hours[1].split(':')[0]):
+                if ctx.author not in work_role.members:
+                    await ctx.send(f"{member.mention} you are scheduled to work now but are not clocked in! Punch in and get to work now!")
+                else:
+                    await ctx.send(f"{name} is currently punched in and working on schedule.")
+            else:
+                await ctx.send(f"{name} is not scheduled to work at this time today.")
+
+        else: # Default to author
+            # get the user's work hours from the database
+            cur.execute(f"SELECT {now_weekday}_start, {now_weekday}_end FROM schedule WHERE user_id=?", [ctx.author.id])
+            work_hours = cur.fetchone()
+            if work_hours is None:
+                await ctx.send("You are off today, enjoy the day off!")
+
+            # Currently doesn't support overnight shifts
+            if current_hour >= int(work_hours[0].split(':')[0]) and current_hour <= int(work_hours[1].split(':')[0]):
+                if ctx.author not in work_role.members:
+                    await ctx.send(f"{ctx.author.mention} you are scheduled to work now but are not clocked in! Punch in and get to work now!")
+                else:
+                    await ctx.send("You are currently punched in and working on schedule. Keep up the good work and do not lose focus!")
+            else:
+                await ctx.send("You are not scheduled to work at this time today. Enjoy the time off for now!")
     
     @commands.command()
     async def work_schedule(self, ctx):
