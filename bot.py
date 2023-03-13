@@ -113,7 +113,7 @@ class BossBot(Cog):
             await channel.send(f"Hello! Welcome {member.mention} to the server!")
 
     @commands.command()
-    async def register(self, ctx):
+    async def register(self, ctx: commands.Context):
         """ Register new user information. Starts multiple prompts. """
         # Full name prompt
         start_msg = await ctx.send(f"Hello there **{ctx.author.name}**, please enter your real first and last name.")
@@ -181,7 +181,7 @@ class BossBot(Cog):
         await ctx.send(f"Registered as {name} from {region} with birthday {date.strftime('%B %d, %Y')}.")
 
     @commands.command()
-    async def today(self, ctx):
+    async def today(self, ctx: commands.Context):
         """Shows data for data base on todays date based off in put from user"""
         quote = get_quote_of_the_day()
         cur.execute("SELECT holiday FROM schedule WHERE user_id = ?", [ctx.author.id])
@@ -195,7 +195,7 @@ class BossBot(Cog):
             await ctx.send("Today is not a holiday in your region. If you are not sure if you work try `!work_schedule`.")
 
     @commands.command()
-    async def schedule(self, ctx):
+    async def schedule(self, ctx:commands.Context):
         """Prompts the user to enter their work week schedule."""
         days = ['Monday', 'Tuesday', 'Wednesday',
                 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -203,7 +203,6 @@ class BossBot(Cog):
         for day in days:
             start_msg = await ctx.send(f"Enter start and end time for **{day}** (or enter 'none' if you don't wish to work). Enter the start and end time range as 24 hour time hh:mm hh:mm, separated by a space. Example `9:00 17:00` to start at 9:00 and end at 17:00.")
             # No requirements for name, whatever the user inputs, that's their name
-
             def check_time(m):
                 return True
             try:
@@ -222,7 +221,7 @@ class BossBot(Cog):
         await ctx.send(f"Thank you for entering your schedule. Welcome to Umbrella Corp. Enjoy your stay!")
 
     @commands.command()
-    async def check_work(self, ctx, user_id=None):
+    async def check_work(self, ctx: commands.Context, user_id=None):
         """Checks if user is offline during their work hours today. Uses punch in time and punch out time. Defaults to current user if no user is provided."""
         # get the current time
         now = datetime.datetime.now()
@@ -269,7 +268,7 @@ class BossBot(Cog):
                 await ctx.send("You are not scheduled to work at this time today. Enjoy the time off for now!")
 
     @commands.command()
-    async def work_schedule(self, ctx):
+    async def work_schedule(self, ctx: commands.Context):
         """Retrieves the user's schedule for a specific date."""
         await ctx.send("Please enter the date you would like to know about in the following format `MM/DD/YYYY`:")
         response = await self.bot.wait_for('message', check=lambda message: message.author == ctx.author)
@@ -325,7 +324,7 @@ class BossBot(Cog):
             await ctx.send("You have not set up a schedule yet. Please run `!schedule`!")
 
     @commands.command()
-    async def punch(self, ctx):
+    async def punch(self, ctx: commands.Context):
         """Punches the user in/out for their shift. Toggles user's working role"""
         user_id = ctx.author.id
         cur.execute("SELECT name FROM schedule WHERE user_id=?", [user_id])
