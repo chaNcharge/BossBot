@@ -19,9 +19,10 @@ BossBot function was to help with scheduling and personnel records and helping w
 0. Install python 3
 1. Download or clone the repository
 2. Copy `config.json.example` as `config.json`
-3. Insert your bots token from https://discord.com/developers/applications into the `token` field
-4. Run `pip install -r requirements.txt` to install required packages
-5. Run `python bot.py`
+3. In config.json, insert your bots token from https://discord.com/developers/applications into the `token` field
+4. Create a server role that will be used for punching users in or out. Insert the role id into the `work_role_id` field.
+5. Run `pip install -r requirements.txt` to install required packages
+6. Run `python bot.py`
 
 
 ## Authors
