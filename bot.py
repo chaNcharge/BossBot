@@ -38,8 +38,8 @@ cur = con.cursor()
 # Table creation
 # (Note that when we create new columns mid development,
 # a new table will have to be created or an existing table manually edited)
-table_name = "schedule"
-cur.execute(f"""CREATE TABLE IF NOT EXISTS {table_name} (
+
+cur.execute(f"""CREATE TABLE IF NOT EXISTS schedule (
 user_id INTEGER NOT NULL,
 name TEXT NOT NULL,
 birthday TIMESTAMP NOT NULL,
@@ -153,7 +153,7 @@ class BossBot(Cog):
             return await birthday_msg.edit(content=f"~~{start_msg.clean_content}~~\n\nInvalid date format. Please run register again.")
 
         # Region prompt
-        region_msg = await ctx.send(f"Hello, **{name}**, now enter your region form the fallowing Region list: `North America`,`Central America`,`South America`,`Europe`,`Asia`,`Middle East`,`Africa`,`Oceania`,`World`")
+        region_msg = await ctx.send(f"Hello, **{name}**, now enter your region form the following region list: `North America`,`Central America`,`South America`,`Europe`,`Asia`,`Middle East`,`Africa`,`Oceania`,`World`")
 
         def check_region(m):
             if (m.author == ctx.author and m.channel == ctx.channel):
@@ -172,8 +172,8 @@ class BossBot(Cog):
         # Example: datetime.datetime.strptime('Mar\xa23','%b\xa%d').strftime('%m/%d')
         holidays = get_RegionHDays(region)
         try:
-            cur.execute(f"""INSERT INTO {table_name} (user_id, name, birthday, region, holiday, has_role) 
-                VALUES ({ctx.author.id}, "{name}", "{date.strftime("%Y-%m-%d")} 00:00:00", "{region}", "{','.join(holidays)}", False)""")
+            cur.execute("""INSERT INTO schedule (user_id, name, birthday, region, holiday, has_role) 
+                VALUES (?, ?, ? || ' 00:00:00', ?, ?, False)""", (ctx.author.id, name, date.strftime("%Y-%m-%d"), region, ','.join(holidays)))
         except sqlite3.Error as e:
             return await ctx.send(f"An error occurred while registering: {e}. PLEASE RETRY `!register` and ensure to enter data in the correct format")
 
@@ -184,8 +184,7 @@ class BossBot(Cog):
     async def today(self, ctx):
         """Shows data for data base on todays date based off in put from user"""
         quote = get_quote_of_the_day()
-        cur.execute(
-            f"SELECT holiday FROM schedule WHERE user_id = {ctx.author.id}")
+        cur.execute("SELECT holiday FROM schedule WHERE user_id = ?", [ctx.author.id])
         holidays = cur.fetchone()[0]
         today = datetime.date.today().strftime('%Y-%m-%d')
         await ctx.send(f"{quote}")
@@ -218,7 +217,7 @@ class BossBot(Cog):
             else:
                 start, end = response.content.split()  # start and end times
                 cur.execute(
-                    f'UPDATE {table_name} SET {day}_start="{start}", {day}_end="{end}" WHERE user_id={ctx.author.id};')
+                    f'UPDATE schedule SET {day}_start="{start}", {day}_end="{end}" WHERE user_id={ctx.author.id};')
                 con.commit()
         await ctx.send(f"Thank you for entering your schedule. Welcome to Umbrella Corp. Enjoy your stay!")
 
@@ -342,9 +341,13 @@ class BossBot(Cog):
 
         if ctx.author in work_role.members:
             await ctx.author.remove_roles(work_role)
+            cur.execute("UPDATE schedule SET has_role=0 WHERE user_id=?", [user_id])
+            con.commit()
             await ctx.send(f"Thank you, {name}, you have punched out at {now}. Have a good rest of your day!")
         else:
             await ctx.author.add_roles(work_role)
+            cur.execute("UPDATE schedule SET has_role=1 WHERE user_id=?", [user_id])
+            con.commit()
             await ctx.send(f"Thank you, {name}, you have punched in at {now}. Welcome in!")
 
 
