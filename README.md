@@ -11,9 +11,10 @@ BossBot function was to help with scheduling and personnel records and helping w
 * `!echo`: Test to see if sever is active
 * `!register`: takes user name, birthday, and region to store into a data base for later reference.
 * `!today`: Shows a quote of the day and the users schedule for the day Checks for  user birthday and region holidays to see if the user has work today.
-* `!schedule`: the has the user input their weekly schedule by days of the week to store into a data base for later reference.
-* `!check_work`: This command is a Passive checks to see if the user is online and punched in and also punched out at end of day.
+* `!schedule`: the has the user input their weekly schedule by days of the week to store into a database for later reference.
+* `!check_work`: This command is a check to see if the user is online and punched in and also punched out at end of day.
 * `!work_schedule`: User inputs a date and then the bot will show if they have work on that day.
+* `punch`: Punches in/out user by editing the database and toggles the user's working role specified in config.json
  
 ## How to set up
 0. Install python 3
